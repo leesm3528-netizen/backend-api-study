@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>백엔드 API 기초</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">{ }</span>
+      <div>
+        <h1>백엔드 API 기초</h1>
+        <p class="sub">Endpoint · Method · Request · Response · 보안</p>
+      </div>
+    </div>
+    <button id="themeBtn" class="icon-btn" aria-label="테마 전환">◐</button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="learn">📘 개념 학습</button>
+    <button class="tab" data-view="cards">🃏 단어 카드</button>
+    <button class="tab" data-view="quiz">📝 퀴즈</button>
+    <button class="tab" data-view="notes">❌ 오답노트 <span id="noteBadge" class="badge">0</span></button>
+  </nav>
+
+  <main>
+    <!-- 개념 학습 -->
+    <section id="view-learn" class="view active">
+      <div class="flow card">
+        <h2>API 요청 한 번의 흐름</h2>
+        <div class="flow-row">
+          <div class="flow-box client">클라이언트<br><small>브라우저 · 앱</small></div>
+          <div class="flow-arrow">
+            <span>Request →</span>
+            <code>POST /api/v1/users</code>
+            <span>← Response</span>
+            <code>201 Created + JSON</code>
+          </div>
+          <div class="flow-box server">서버<br><small>백엔드 API</small></div>
+        </div>
+        <p class="muted">아래 단원을 순서대로 읽고, 각 단원 끝의 <b>핵심 체크</b>로 확인하세요.</p>
+      </div>
+      <div class="learn-layout">
+        <aside class="toc" id="toc"></aside>
+        <div id="lessons"></div>
+      </div>
+    </section>
+
+    <!-- 단어 카드 -->
+    <section id="view-cards" class="view">
+      <div class="toolbar">
+        <select id="cardFilter"></select>
+        <label class="chk"><input type="checkbox" id="hideKnown"> 외운 카드 숨기기</label>
+        <button class="btn ghost" id="shuffleCards">🔀 섞기</button>
+        <button class="btn ghost" id="resetKnown">↺ 외움 초기화</button>
+      </div>
+      <div class="progress"><div id="cardProgressBar"></div></div>
+      <p class="muted center" id="cardProgressText"></p>
+
+      <div class="flash-wrap">
+        <div class="flash" id="flash" tabindex="0" aria-label="카드를 눌러 뒤집기">
+          <div class="flash-inner">
+            <div class="face front">
+              <span class="tag" id="cardCat"></span>
+              <div class="term" id="cardTerm"></div>
+              <p class="hint">클릭 / Space 로 뒤집기</p>
+            </div>
+            <div class="face back">
+              <div class="def" id="cardDef"></div>
+              <pre class="ex" id="cardEx"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-nav">
+        <button class="btn" id="prevCard">← 이전</button>
+        <button class="btn warn" id="againCard">🔁 다시 볼래요</button>
+        <button class="btn ok" id="knowCard">✅ 외웠어요</button>
+        <button class="btn" id="nextCard">다음 →</button>
+      </div>
+      <p class="muted center small">단축키: ← → 이동 · Space 뒤집기 · K 외웠어요</p>
+    </section>
+
+    <!-- 퀴즈 -->
+    <section id="view-quiz" class="view">
+      <div id="quizStart" class="card center-card">
+        <h2>퀴즈 풀기</h2>
+        <p class="muted">문제를 틀리면 자동으로 오답노트에 저장됩니다.</p>
+        <div class="field">
+          <label>범위</label>
+          <select id="quizCat"></select>
+        </div>
+        <div class="field">
+          <label>문제 수</label>
+          <select id="quizCount">
+            <option value="5">5문제</option>
+            <option value="10" selected>10문제</option>
+            <option value="20">20문제</option>
+            <option value="999">전체</option>
+          </select>
+        </div>
+        <button class="btn primary big" id="startQuiz">시작하기</button>
+        <p class="muted small" id="bestScore"></p>
+      </div>
+
+      <div id="quizBox" class="card hidden">
+        <div class="quiz-head">
+          <span id="quizNum"></span>
+          <span class="tag" id="quizTag"></span>
+          <span id="quizScore"></span>
+        </div>
+        <div class="progress"><div id="quizBar"></div></div>
+        <h3 id="quizQ"></h3>
+        <pre id="quizCode" class="code hidden"></pre>
+        <div id="quizOpts" class="opts"></div>
+        <div id="quizExplain" class="explain hidden"></div>
+        <div class="right"><button class="btn primary hidden" id="nextQ">다음 문제 →</button></div>
+      </div>
+
+      <div id="quizResult" class="card center-card hidden">
+        <h2>결과</h2>
+        <div class="score-ring" id="scoreRing"></div>
+        <p id="resultMsg"></p>
+        <div class="row-center">
+          <button class="btn" id="retryQuiz">다시 풀기</button>
+          <button class="btn primary" id="goNotes">오답노트 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 오답노트 -->
+    <section id="view-notes" class="view">
+      <div class="toolbar">
+        <button class="btn primary" id="retryWrong">틀린 문제만 다시 풀기</button>
+        <button class="btn ghost" id="clearNotes">전체 비우기</button>
+      </div>
+      <div id="notesList"></div>
+    </section>
+  </main>
+
+  <footer class="foot">백엔드 필수 요소 개념 공부 · 학습 기록은 이 브라우저에 저장됩니다</footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
